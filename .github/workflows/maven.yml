@@ -36,34 +36,16 @@ jobs:
 
     - name: Run tests
       run: mvn test
-
-    - name: Generate code coverage report
-      run: mvn jacoco:report
-
-    - name: Upload code coverage report
-      uses: actions/upload-artifact@v3
+    - name: Build & push Docker image
+      uses: mr-smithers-excellent/docker-build-push@v6
       with:
-        name: code-coverage-report
-        path: target/site/jacoco
-    
-    - name: Run static code analysis
-      run: mvn checkstyle:check pmd:check spotbugs:check
+       image: repo/spring-github-action
+       tags: latest
+       registry: docker
+       dockerfile: Dockerfile.ci
+       username: ${{ secrets.DOCKER_USERNAME }}
+       password: ${{ secrets.DOCKER_PASSWORD }}
+        
+   
 
-    - name: Run security scan
-      run: mvn org.owasp:dependency-check-maven:check
-
-    - name: Save Maven build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: maven-build-artifacts
-        path: target/*.jar
-
-    - name: Notify Slack
-      if: failure()
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        author_name: 'GitHub Actions'
-        fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+   
